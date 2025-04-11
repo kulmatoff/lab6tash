@@ -4,19 +4,16 @@ const ClientDashboard = () => {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold">Client Dashboard</h1>
-      <p>Welcome, client! Here you can view your profile, manage your orders, and see available reports.</p>
-      <ul className="mt-4 space-y-2">
-        <li>
-          <Link to="/reports/client-orders" className="text-blue-500 underline">
-            View Your Order History
-          </Link>
-        </li>
-        <li>
-          <Link to="/reports/order-composition" className="text-blue-500 underline">
-            View Order Receipt (Composition)
-          </Link>
-        </li>
-      </ul>
+      <p>Добро пожаловать, клиент!</p>
+
+      <div className="mt-6 space-y-4">
+        <Link to="/reports/orders" className="text-blue-600 underline">📄 Мои заказы</Link>
+        <Link to="/reports/client-debts" className="text-blue-600 underline">💰 Моя задолженность</Link>
+        <Link to="/reports/promotions" className="text-blue-600 underline">🎉 Актуальные акции</Link>
+        <Link to="/" onClick={() => { localStorage.clear(); window.location.reload(); }} className="text-red-500 underline">
+          🔓 Выйти
+        </Link>
+      </div>
     </div>
   );
 };
