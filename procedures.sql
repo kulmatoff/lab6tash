@@ -109,7 +109,7 @@ CREATE PROCEDURE sp_AuthenticateUser
 AS
 BEGIN
     SET NOCOUNT ON;
-    
+
     IF (@userType = 'client')
     BEGIN
         SELECT * 
@@ -118,13 +118,21 @@ BEGIN
     END
     ELSE IF (@userType IN ('seller', 'purchasing_manager', 'accountant', 'administrator'))
     BEGIN
+        DECLARE @ExpectedPositionID INT;
+
+        SET @ExpectedPositionID = CASE @userType
+            WHEN 'administrator' THEN 1
+            WHEN 'seller' THEN 2
+            WHEN 'purchasing_manager' THEN 3
+            WHEN 'accountant' THEN 4
+        END;
+
         SELECT * 
         FROM dbo.Employee 
-        WHERE Login = @login AND Password = @password;
+        WHERE Login = @login AND Password = @password AND Position_ID = @ExpectedPositionID;
     END
     ELSE
     BEGIN
-        -- Return an error record if the userType is not recognized.
         SELECT 'Invalid user type' AS Error;
     END
 END
@@ -189,14 +197,13 @@ BEGIN
         ROW_NUMBER() OVER (ORDER BY s.Supply_ID) AS [Номер],
         s.Supply_ID AS [Номер поставки],
         sup.Company_Name AS [Поставщик],
-        'Employee Name' AS [Сотрудник], -- Заглушка, требуется источник данных
         DATEADD(day, 30, s.Supply_Date) AS [Дедлайн],
         ISNULL(SUM(sp.Amount), 0) AS [Сумма оплате],
         (
-          (SELECT ISNULL(SUM(CAST(sl.Price AS INT) * CAST(sl.Quantity AS INT)), 0)
-           FROM dbo.Supply_List sl 
-           WHERE sl.Supply_ID = s.Supply_ID)
-          - ISNULL(SUM(sp.Amount), 0)
+            (SELECT ISNULL(SUM(CAST(sl.Price AS INT) * CAST(sl.Quantity AS INT)), 0)
+             FROM dbo.Supply_List sl 
+             WHERE sl.Supply_ID = s.Supply_ID)
+            - ISNULL(SUM(sp.Amount), 0)
         ) AS [Задолженность]
     FROM dbo.Supply s
     JOIN dbo.Supplier sup ON s.Supplier_ID = sup.Supplier_ID
@@ -256,12 +263,14 @@ BEGIN
         ROW_NUMBER() OVER (ORDER BY s.Salary_ID) AS [Номер],
         s.Salary_Date AS [Дата],
         s.Salary_Amount AS [Начисленно],
-        s.Bonus AS [Оплачено], -- Заглушка – можно заменить на реальные данные оплаты
-        (e.First_Name + ' ' + e.Last_Name) AS [Должность сотрудник]
+        ISNULL(s.Salary_Amount - s.Bonus, 0) AS [Оплачено],
+        CONCAT(e.First_Name, ' ', e.Last_Name) AS [Сотрудник]
     FROM dbo.Salary s
     JOIN dbo.Employee e ON s.Employee_ID = e.Employee_ID;
 END
 GO
+
+
 
 ------------------------------------------------------------------
 -- 7. Продажи по акциям
@@ -313,11 +322,11 @@ AS
 BEGIN
     SELECT 
         ROW_NUMBER() OVER (ORDER BY sp.Supply_Payment_ID) AS [Номер],
-        sp.[Date_] AS [Дата],
+        sp.Date_ AS [Дата],
         sp.Amount AS [Сумма],
         sup.Company_Name AS [Поставщик],
-        'Employee Name' AS [Сотрудник], -- Заглушка
-        pt.[Payment_Type] AS [Тип оплаты]
+        NULL AS [Сотрудник], -- Без связки, так как нет Employee_ID
+        pt.Payment_Type AS [Тип оплаты]
     FROM dbo.Supply_Payment sp
     JOIN dbo.Supply s ON sp.Supply_ID = s.Supply_ID
     JOIN dbo.Supplier sup ON s.Supplier_ID = sup.Supplier_ID
@@ -412,19 +421,22 @@ GO
 -- Колонки: № заказа, Дата, Стоимость, № накладной, Статус
 ------------------------------------------------------------------
 CREATE PROCEDURE sp_GetClientOrders
+    @Client_ID INT
 AS
 BEGIN
     SELECT 
         o.Order_ID AS [№ заказа],
         o.Order_Date AS [Дата],
-        o.Comment AS [Стоимость],  -- заглушка; заменить на реальное поле стоимости, если есть
+        sum(p.Amount) AS [Стоимость],  
         o.Invoice_Number AS [№ накладной],
         os.[Order_Status] AS [Статус]
     FROM dbo.Order_ o
-    JOIN dbo.Order_Status os ON o.Order_Status_ID = os.Order_Status_ID;
+    JOIN dbo.Order_Status os ON o.Order_Status_ID = os.Order_Status_ID
+	JOIN dbo.Payment p on p.Order_ID = o.Order_ID
+    WHERE o.Client_ID = @Client_ID
+	GROUP BY o.Order_ID, o.Order_Date, o.Invoice_Number, os.[Order_Status];
 END
 GO
-
 ------------------------------------------------------------------
 -- 15. Форма отмены заказа
 -- Принимает параметры: Order_ID, Reason, Employee_ID
@@ -495,8 +507,18 @@ AS
 BEGIN
     SELECT 
         o.Order_ID AS [№ заказа],
-        1000 AS [Сумма к оплате],         -- заглушка
-        800 AS [Фактическая сумма оплаты], -- заглушка
+        -- Сумма к оплате: сумма (цена со скидкой * количество) из Order_Details
+        (
+            SELECT SUM(od.Discounted_Price * od.Quantity)
+            FROM dbo.Order_Details od
+            WHERE od.Order_ID = o.Order_ID
+        ) AS [Сумма к оплате],
+        -- Фактическая сумма оплаты: сумма из Payment
+        (
+            SELECT SUM(p.Amount)
+            FROM dbo.Payment p
+            WHERE p.Order_ID = o.Order_ID
+        ) AS [Фактическая сумма оплаты],
         DATEADD(day, 30, o.Order_Date) AS [Дата дедлайна платежа]
     FROM dbo.Order_ o;
 END
@@ -513,15 +535,15 @@ BEGIN
         o.Order_ID AS [Номер заказа],
         o.Order_Date AS [Дата заказа],
         o.Comment AS [Причина отмены],
-        'Employee Name' AS [Сотрудник],  -- заглушка
-        pt.[Payment_Type] AS [Тип оплаты]
+        pt.Payment_Type AS [Тип оплаты]
     FROM dbo.Order_ o
     JOIN dbo.Order_Status os ON o.Order_Status_ID = os.Order_Status_ID
     LEFT JOIN dbo.Payment p ON o.Order_ID = p.Order_ID
     LEFT JOIN dbo.Payment_Type pt ON p.Payment_Type_ID = pt.Payment_Type_ID
-    WHERE os.[Order_Status] = 'Отменён';
+    WHERE os.Order_Status = 'Cancelled';
 END
 GO
+
 
 ------------------------------------------------------------------
 -- 20. Продажи по товарам

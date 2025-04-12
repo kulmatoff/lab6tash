@@ -13,13 +13,31 @@ const AuthPage = () => {
     const storedUserType = localStorage.getItem("userType");
 
     if (token && storedUserType) {
-      if (storedUserType === "client") {
-        navigate("/client-dashboard");
-      } else {
-        navigate("/employee-dashboard");
-      }
+      redirectByUserType(storedUserType);
     }
   }, [navigate]);
+
+  const redirectByUserType = (type) => {
+    switch (type) {
+      case "client":
+        navigate("/client-dashboard");
+        break;
+      case "seller":
+        navigate("/seller-dashboard");
+        break;
+      case "purchasing_manager":
+        navigate("/purchasing-dashboard");
+        break;
+      case "accountant":
+        navigate("/accountant-dashboard");
+        break;
+      case "administrator":
+        navigate("/admin-dashboard");
+        break;
+      default:
+        navigate("/");
+    }
+  };
 
   const loginHandler = async () => {
     try {
@@ -39,11 +57,7 @@ const AuthPage = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("userType", userType);
 
-      if (userType === "client") {
-        navigate("/client-dashboard");
-      } else {
-        navigate("/employee-dashboard");
-      }
+      redirectByUserType(userType);
     } catch (err) {
       setErrorMessage("Unexpected error: " + err.message);
     }
