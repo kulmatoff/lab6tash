@@ -142,6 +142,8 @@ app.post("/api/employees/register", async (req, res) => {
 // ------------------ REPORTS ------------------
 const reportRoutes = {
     "break-even": "sp_GetBreakEvenPoint",
+    "get-all-orders": "sp_GetAllClientOrders",
+    "warehouse-remainder": "sp_GetWarehouseProductRemainders",
     "deliveries-by-supplier": "sp_GetDeliveriesBySupplier",
     "supplier-debt": "sp_GetSupplierDebt",
     "supply-product-profit": "sp_GetSupplyProductProfit",
@@ -153,7 +155,6 @@ const reportRoutes = {
     "defective-products": "sp_GetDefectiveProducts",
     "warehouse-products": "sp_GetWarehouseProducts",
     "price-list": "sp_GetPriceList",
-    "order-composition": "sp_GetOrderComposition",
     "client-debts": "sp_GetClientDebts",
     "canceled-orders": "sp_GetCanceledOrders",
     "product-sales": "sp_GetProductSales",
@@ -169,6 +170,26 @@ for (const [route, procedure] of Object.entries(reportRoutes)) {
         res.json({ success: true, data: result.recordset });
     });
 }
+
+// Добавление оплаты заказа
+app.post("/api/payments/add", verifyToken, async (req, res) => {
+    const { Order_ID, Amount, Payment_Type_ID, Comment } = req.body;
+    const pool = await poolPromise;
+  
+    try {
+      const result = await pool.request()
+        .input("Order_ID", sql.Int, Order_ID)
+        .input("Amount", sql.Decimal(10, 2), Amount)
+        .input("Payment_Type_ID", sql.Int, Payment_Type_ID)
+        .input("Comment", sql.VarChar(255), Comment)
+        .execute("sp_AddOrderPayment");
+  
+      res.json({ success: true, data: result.recordset });
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+  
 
 // ------------------ DYNAMIC REPORTS ------------------
 // Заказы клиента по его ID
@@ -192,6 +213,31 @@ app.get("/api/reports/client-orders/:id", verifyToken, async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
   });
+
+app.get("/api/reports/client-order-composition/:id", verifyToken, async (req, res) => {
+    try {
+        const orderId = parseInt(req.params.id);
+        const clientId = parseInt(req.query.clientId); // ?clientId=1
+
+        if (isNaN(orderId) || isNaN(clientId)) {
+            return res.status(400).json({ success: false, message: "Invalid IDs" });
+        }
+
+        const pool = await poolPromise;
+        const result = await pool
+            .request()
+            .input("Client_ID", sql.Int, clientId)
+            .input("Order_ID", sql.Int, orderId)
+            .execute("sp_GetOrderComposition");
+
+        res.status(200).json({ success: true, data: result.recordset });
+    } catch (err) {
+        console.error("🔥 Error fetching order composition:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+
   
   
 // Оплата заказов за период
@@ -209,16 +255,20 @@ app.get("/api/reports/order-payments", verifyToken, async (req, res) => {
 
 // Отмена заказа
 app.post("/api/orders/cancel", verifyToken, async (req, res) => {
-    const { Order_ID, Reason, Employee_ID } = req.body;
+    const { Order_ID, Reason } = req.body;
     const pool = await poolPromise;
 
-    const result = await pool.request()
-        .input("Order_ID", sql.Int, Order_ID)
-        .input("Reason", sql.VarChar, Reason)
-        .input("Employee_ID", sql.Int, Employee_ID)
-        .query("EXEC sp_CancelOrder @Order_ID, @Reason, @Employee_ID");
+    try {
+        const result = await pool.request()
+            .input("Order_ID", sql.Int, Order_ID)
+            .input("Reason", sql.VarChar, Reason)
+            .query("EXEC sp_CancelOrder @Order_ID, @Reason");
 
-    res.json({ success: true, data: result.recordset });
+        res.json({ success: true, data: result.recordset });
+    } catch (err) {
+        console.error("Error canceling order:", err);
+        res.status(500).json({ success: false, message: err.message });
+    }
 });
 
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

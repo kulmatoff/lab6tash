@@ -31,8 +31,15 @@ import {
   CanceledOrdersReport,
   ProductSalesReport,
   SalesByClientsReport,
-  SalesByWarehouseReport
+  SalesByWarehouseReport,
+  ClientPaymentReport,
+  AddClientContact,
+  WarehouseRemaindersReport,
+  SellersClientOrdersReport
 } from "./pages/Reports";
+import OrderPaymentForm from "./pages/OrderPaymentForm";
+
+import ClientOrderDetails from "./pages/ClientOrderDetails";
 
 function App() {
   return (
@@ -49,8 +56,13 @@ function App() {
       <Route path="/purchasing-dashboard" element={<PurchasingManagerDashboard />} />
       <Route path="/accountant-dashboard" element={<AccountantDashboard />} />
 
-
+      <Route path="/client/add-contact" element={<AddClientContact />} />
+      <Route path="/order-payment" element={<OrderPaymentForm />} />
         {/* Отчёты */}
+        <Route path="/reports/seller-orders" element={<SellersClientOrdersReport />} />
+        <Route path="/reports/warehouse-remainders" element={<WarehouseRemaindersReport />} />
+        <Route path="/reports/client-payments" element={<ClientPaymentReport />} />
+        <Route path="/client-order/:id" element={<ClientOrderDetails />} />
         <Route path="/reports/break-even" element={<BreakEvenReportPage />} />
         <Route path="/reports/orders" element={<OrdersSummaryReport />} />
         <Route path="/reports/client-debts" element={<ClientDebtsReport />} />

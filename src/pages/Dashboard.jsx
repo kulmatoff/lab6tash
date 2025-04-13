@@ -36,8 +36,11 @@ export const AdminDashboard = createDashboard("👑 Админ-панель", [
 ]);
 
 export const SellerDashboard = createDashboard("🛒 Панель продавца", [
-  ["/reports/orders", "Сводка заказов"],
-  ["/reports/client-orders", "Заказы клиента"],
+  ["/reports/price-list", "Прайс-лист"],
+  ["/reports/seller-orders", "Сводка заказов"],
+  ["/reports/client-debts", "Задолженности клиентов"],
+  ["/reports/warehouse-remainders", "Остатки на складе"],
+  ["/reports/warehouse", "Складской отчёт"],
   ["/reports/product-sales", "Продажи по товарам"],
   ["/reports/sales-by-clients", "Продажи по клиентам"],
   ["/reports/sales-by-warehouse", "Продажи по складу"],
@@ -63,7 +66,12 @@ export const AccountantDashboard = createDashboard("💰 Бухгалтерия"
 ]);
 
 export const ClientDashboard = createDashboard("👤 Кабинет клиента", [
+  ["/reports/price-list", "Прайс-лист"],
+  ["/order-payment", "Оплата заказа"],
   ["/reports/client-orders", "Мои заказы"],
-  ["/reports/order-receipt", "Чеки по заказам"],
-  ["/reports/promotions", "Актуальные акции"]
+  ["/reports/promotions", "Актуальные акции"],
+  ["/reports/client-payments", "Отчёт по оплатам"],
+  ["/client/add-contact", "Добавить контакт"],
+  ["/reports/client-debts", "Задолженности"],
+  ["/reports/canceled-orders", "Отмененные заказы"],
 ]);

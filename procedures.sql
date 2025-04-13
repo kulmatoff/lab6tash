@@ -401,9 +401,28 @@ GO
 -- 13. Состав заказа (чек)
 -- Колонки: № строки, Товар, Цена со скидкой, Количество, Стоимость
 ------------------------------------------------------------------
+
 CREATE PROCEDURE sp_GetOrderComposition
+    @Client_ID INT,
+    @Order_ID INT
 AS
 BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM dbo.Order_ WHERE Order_ID = @Order_ID AND Client_ID = @Client_ID
+    )
+    BEGIN
+        SELECT TOP 0
+            od.Order_Details_ID AS [№ строки],
+            p.Product_Name AS [Товар],
+            od.Discounted_Price AS [Цена со скидкой],
+            od.Quantity AS [Количество],
+            (od.Discounted_Price * od.Quantity) AS [Стоимость]
+        FROM dbo.Order_Details od
+        JOIN dbo.Supply_List sl ON od.Supply_List_ID = sl.Supply_List_ID
+        JOIN dbo.Product p ON sl.Product_ID = p.Product_ID;
+        RETURN;
+    END
+
     SELECT 
         od.Order_Details_ID AS [№ строки],
         p.Product_Name AS [Товар],
@@ -412,9 +431,12 @@ BEGIN
         (od.Discounted_Price * od.Quantity) AS [Стоимость]
     FROM dbo.Order_Details od
     JOIN dbo.Supply_List sl ON od.Supply_List_ID = sl.Supply_List_ID
-    JOIN dbo.Product p ON sl.Product_ID = p.Product_ID;
+    JOIN dbo.Product p ON sl.Product_ID = p.Product_ID
+    JOIN dbo.Order_ o ON od.Order_ID = o.Order_ID
+    WHERE o.Order_ID = @Order_ID AND o.Client_ID = @Client_ID;
 END
 GO
+
 
 ------------------------------------------------------------------
 -- 14. Заказы клиента
@@ -443,15 +465,14 @@ GO
 ------------------------------------------------------------------
 CREATE PROCEDURE sp_CancelOrder
     @Order_ID INT,
-    @Reason VARCHAR(255),
-    @Employee_ID INT
+    @Reason VARCHAR(255)
 AS
 BEGIN
     UPDATE dbo.Order_
     SET Order_Status_ID = (
          SELECT TOP 1 Order_Status_ID 
          FROM dbo.Order_Status 
-         WHERE [Order_Status] = 'Отменён'
+         WHERE [Order_Status] = 'Cancelled'
          ORDER BY Order_Status_ID
          ),
         Comment = @Reason
