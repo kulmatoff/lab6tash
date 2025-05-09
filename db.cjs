@@ -3,9 +3,9 @@ require("dotenv").config()
 
 const config = {
     server: "DESKTOP-S10M3AT\\BARTENDER",
-    user: "baiastan",
-    password: "V146495c",
-    database: "baias",
+    user: "flower_admin",
+    password: "pass",
+    database: "flowers_db_2025",
     port: parseInt(process.env.DB_PORT),
     options: {
         trustServerCertificate: true

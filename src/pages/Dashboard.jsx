@@ -1,19 +1,23 @@
 import { Link } from "react-router-dom";
 import Header from "../pages/Header";
 
-
 const DashboardCard = ({ to, label }) => (
-  <Link to={to} className="block bg-white shadow-md rounded-md p-4 hover:bg-gray-100">
-    {label}
+  <Link
+    to={to}
+    className="block p-6 rounded-3xl shadow-md bg-gradient-to-br from-pink-100 via-rose-200 to-rose-100 text-rose-900 hover:shadow-2xl hover:scale-[1.03] hover:brightness-110 transition-all duration-300 font-semibold backdrop-blur-md border border-rose-300"
+  >
+    <span className="text-lg tracking-wide">{label}</span>
   </Link>
 );
 
 const createDashboard = (title, links) => {
   return () => (
-    <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-br from-rose-100 via-pink-200 to-rose-100 px-6 py-12 font-serif text-rose-900">
       <Header />
-      <h1 className="text-2xl font-bold mb-6">{title}</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h1 className="text-5xl font-extrabold mb-12 text-center tracking-wide drop-shadow-md">
+        {title}
+      </h1>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
         {links.map(([path, label]) => (
           <DashboardCard key={path} to={path} label={label} />
         ))}
@@ -32,7 +36,7 @@ export const AdminDashboard = createDashboard("👑 Админ-панель", [
   ["/reports/supply-payments", "Оплаты поставок"],
   ["/reports/canceled-orders", "Отмененные заказы"],
   ["/reports/taxes", "Налоги"],
-  ["/reports/salaries", "Зарплаты сотрудников"]
+  ["/reports/salaries", "Зарплаты сотрудников"],
 ]);
 
 export const SellerDashboard = createDashboard("🛒 Панель продавца", [
@@ -45,7 +49,7 @@ export const SellerDashboard = createDashboard("🛒 Панель продавц
   ["/reports/sales-by-clients", "Продажи по клиентам"],
   ["/reports/sales-by-warehouse", "Продажи по складу"],
   ["/reports/order-receipt", "Состав заказа"],
-  ["/reports/promotions", "Акции"]
+  ["/reports/promotions", "Акции"],
 ]);
 
 export const PurchasingManagerDashboard = createDashboard("📦 Закупки", [
@@ -54,7 +58,7 @@ export const PurchasingManagerDashboard = createDashboard("📦 Закупки",
   ["/reports/product-profit", "Прибыльность товаров"],
   ["/reports/defective-products", "Брак при поставке"],
   ["/reports/price-list", "Прайс-лист"],
-  ["/reports/supply-payments", "Оплаты поставок"]
+  ["/reports/supply-payments", "Оплаты поставок"],
 ]);
 
 export const AccountantDashboard = createDashboard("💰 Бухгалтерия", [
@@ -62,7 +66,7 @@ export const AccountantDashboard = createDashboard("💰 Бухгалтерия"
   ["/reports/supply-payments", "Оплаты поставок"],
   ["/reports/profit-loss", "Прибыль и убытки"],
   ["/reports/salaries", "Зарплаты"],
-  ["/reports/taxes", "Налоги"]
+  ["/reports/taxes", "Налоги"],
 ]);
 
 export const ClientDashboard = createDashboard("👤 Кабинет клиента", [

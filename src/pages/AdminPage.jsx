@@ -23,22 +23,23 @@ export const AdminPage = () => {
         body: JSON.stringify({
           First_Name: firstName,
           Last_Name: lastName,
-          Registration_Date: registrationDate, // Expect YYYY-MM-DD
+          Registration_Date: registrationDate,
           Phone: phone,
           Login: login,
           Password: password,
           Position_ID: Number(positionId)
         })
       });
+
       if (!response.ok) {
         const errorText = await response.text();
         setError("Error creating employee: " + errorText);
         return;
       }
+
       const data = await response.json();
       console.log("Employee registration response:", data);
       setSuccessMessage("Employee created successfully.");
-      // Reset form fields
       setFirstName("");
       setLastName("");
       setRegistrationDate("");
@@ -53,76 +54,87 @@ export const AdminPage = () => {
   };
 
   return (
-    <div className="p-8 max-w-md mx-auto bg-gray-100 rounded-md">
-      <h1 className="text-xl font-bold mb-4">Create New Employee</h1>
-      {error && <div className="mb-4 text-red-500">{error}</div>}
-      {successMessage && <div className="mb-4 text-green-500">{successMessage}</div>}
-      <div className="mb-4">
-        <label className="block mb-1">First Name</label>
-        <input
-          type="text"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
+    <div className="p-8 max-w-2xl mx-auto bg-gradient-to-br from-indigo-950 via-purple-900 to-blue-900 rounded-2xl text-white shadow-2xl">
+      <h1 className="text-3xl font-semibold mb-6 text-center">Create New Employee</h1>
+
+      {error && <div className="mb-4 bg-red-500/20 border border-red-400 text-red-300 px-4 py-2 rounded">{error}</div>}
+      {successMessage && <div className="mb-4 bg-green-500/20 border border-green-400 text-green-300 px-4 py-2 rounded">{successMessage}</div>}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block mb-1 text-sm font-light">First Name</label>
+          <input
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 placeholder:text-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Enter first name"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 text-sm font-light">Last Name</label>
+          <input
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 placeholder:text-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Enter last name"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 text-sm font-light">Registration Date</label>
+          <input
+            type="date"
+            value={registrationDate}
+            onChange={(e) => setRegistrationDate(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 text-sm font-light">Phone</label>
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 placeholder:text-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="+996..."
+          />
+        </div>
+        <div>
+          <label className="block mb-1 text-sm font-light">Login</label>
+          <input
+            type="text"
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 placeholder:text-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Username"
+          />
+        </div>
+        <div>
+          <label className="block mb-1 text-sm font-light">Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 placeholder:text-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="••••••••"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block mb-1 text-sm font-light">Position ID</label>
+          <input
+            type="number"
+            value={positionId}
+            onChange={(e) => setPositionId(e.target.value)}
+            className="w-full p-2 rounded bg-white/10 border border-white/20 placeholder:text-gray-200 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Enter position ID"
+          />
+        </div>
       </div>
-      <div className="mb-4">
-        <label className="block mb-1">Last Name</label>
-        <input
-          type="text"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Registration Date</label>
-        <input
-          type="date"
-          value={registrationDate}
-          onChange={(e) => setRegistrationDate(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Phone</label>
-        <input
-          type="text"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Login</label>
-        <input
-          type="text"
-          value={login}
-          onChange={(e) => setLogin(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Position ID</label>
-        <input
-          type="number"
-          value={positionId}
-          onChange={(e) => setPositionId(e.target.value)}
-          className="w-full border p-2 rounded"
-        />
-      </div>
+
       <button
         onClick={createEmployeeHandler}
-        className="bg-blue-500 text-white p-2 rounded w-full"
+        className="w-full mt-6 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 transition-all duration-300 rounded-xl font-semibold shadow-lg"
       >
         Create Employee
       </button>

@@ -1,35 +1,36 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { getUserFromToken } from "../utils/token";
 
-const roleToPath = {
+const roleToDashboardPath = {
   client: "/client-dashboard",
   seller: "/seller-dashboard",
   purchasing_manager: "/purchasing-dashboard",
   accountant: "/accountant-dashboard",
-  administrator: "/admin-dashboard"
+  administrator: "/admin-dashboard",
 };
-
-const pathToRole = Object.fromEntries(
-  Object.entries(roleToPath).map(([role, path]) => [path, role])
-);
 
 const ProtectedRoute = () => {
   const user = getUserFromToken();
   const location = useLocation();
   const currentPath = location.pathname;
 
+  // Redirect unauthenticated users
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  const expectedRole = Object.entries(roleToPath).find(([, path]) =>
+  // Check if current path matches the role dashboard root
+  const expectedRoleEntry = Object.entries(roleToDashboardPath).find(([, path]) =>
     currentPath.startsWith(path)
   );
 
-  if (expectedRole && user.userType !== expectedRole[0]) {
-    return <Navigate to={roleToPath[user.userType]} replace />;
+  // Redirect to correct dashboard if user accesses a path that doesn't match their role
+  if (expectedRoleEntry && user.userType !== expectedRoleEntry[0]) {
+    const correctPath = roleToDashboardPath[user.userType] || "/login";
+    return <Navigate to={correctPath} replace />;
   }
 
+  // Render children routes
   return <Outlet />;
 };
 
